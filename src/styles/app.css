@@ -53,6 +53,15 @@ h1 {
   border-radius: 0.6rem;
   color: #091126;
   background: #c4d4ff;
-  cursor: not-allowed;
+  cursor: pointer;
   font-weight: 700;
 }
+
+.button-secondary { margin-top: 0.75rem; color: #c8d5ed; background: #1b2338; }
+.repository-connect { display: grid; gap: 0.55rem; max-width: 42rem; }
+.repository-connect label { color: #8795ad; font-size: 0.78rem; font-weight: 650; }
+.repository-connect > div { display: flex; }
+.repository-connect input { min-width: 0; flex: 1; padding: 0.75rem 0.8rem; border: 1px solid rgb(255 255 255 / 14%); border-right: 0; border-radius: 0.6rem 0 0 0.6rem; outline: none; color: #dce5f5; background: #111724; font-size: 0.82rem; }
+.repository-connect input:focus { border-color: #7399ef; }
+.repository-connect .button { border-radius: 0 0.6rem 0.6rem 0; white-space: nowrap; }
+.form-error { margin: 0; color: #efafaa; font-size: 0.78rem; }
