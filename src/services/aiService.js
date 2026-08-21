@@ -20,6 +20,7 @@ async function requestAiAnalysis({ fileName, code, action, question }) {
     )
   }
 
+  // Backend returns { explanation: "..." }
   if (!data.explanation) {
     throw new Error('The AI returned an empty response.')
   }
@@ -55,7 +56,7 @@ export function askCodeLens({ fileName, code, question }) {
   return requestAiAnalysis({
     fileName,
     code,
-    action: 'ask',
+    action: 'question',
     question,
   })
 }
