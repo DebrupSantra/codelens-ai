@@ -105,49 +105,81 @@ ${code}
 `;
     }
 
-    const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey,
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: instruction,
-                },
-              ],
-            },
-          ],
-        }),
+    const url =
+      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent";
+
+    const requestOptions = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: instruction,
+              },
+            ],
+          },
+        ],
+      }),
+    };
+
+    // Retry temporary Gemini 503 errors.
+    const maxRetries = 3;
+    let response;
+    let data;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      response = await fetch(url, requestOptions);
+      data = await response.json();
+
+      if (response.ok) {
+        break;
       }
-    );
 
-    const data = await response.json();
+      // Only retry temporary server overload errors.
+      if (response.status !== 503 || attempt === maxRetries) {
+        console.error("Gemini API error:", data);
 
-    if (!response.ok) {
-      console.error("Gemini API error:", data);
+        return res.status(response.status).json({
+          error:
+            data?.error?.message ||
+            "Gemini API request failed",
+        });
+      }
 
-      return res.status(response.status).json({
-        error: data?.error?.message || "Gemini API request failed",
-      });
+      // Exponential backoff:
+      // 1.5s → 3s → 4.5s
+      const delay = 1500 * (attempt + 1);
+
+      console.log(
+        `Gemini returned 503. Retrying in ${delay}ms...`
+      );
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, delay)
+      );
     }
 
-    console.log("FULL GEMINI RESPONSE:", JSON.stringify(data, null, 2));
+    const analysis =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-const analysis =
-  data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!analysis) {
+      console.error(
+        "Gemini returned an unexpected response:",
+        JSON.stringify(data, null, 2)
+      );
 
-if (!analysis) {
-  return res.status(500).json({
-    error: "Gemini returned an empty response",
-    debug: data,
-  });
-}
+      return res.status(502).json({
+        error:
+          data?.promptFeedback?.blockReason
+            ? `Gemini blocked the request: ${data.promptFeedback.blockReason}`
+            : "Gemini did not return any text. Please try again.",
+      });
+    }
 
     return res.status(200).json({
       success: true,
