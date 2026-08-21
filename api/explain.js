@@ -137,14 +137,17 @@ ${code}
       });
     }
 
-    const analysis =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    console.log("FULL GEMINI RESPONSE:", JSON.stringify(data, null, 2));
 
-    if (!analysis) {
-      return res.status(500).json({
-        error: "Gemini returned an empty response",
-      });
-    }
+const analysis =
+  data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+if (!analysis) {
+  return res.status(500).json({
+    error: "Gemini returned an empty response",
+    debug: data,
+  });
+}
 
     return res.status(200).json({
       success: true,
