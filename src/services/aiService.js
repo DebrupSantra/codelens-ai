@@ -20,12 +20,14 @@ async function requestAiAnalysis({ fileName, code, action, question }) {
     )
   }
 
-  // Backend returns { explanation: "..." }
-  if (!data.explanation) {
+  // Backend may return either `explanation` or `analysis`
+  const explanation = data.explanation || data.analysis
+
+  if (!explanation) {
     throw new Error('The AI returned an empty response.')
   }
 
-  return data.explanation
+  return explanation
 }
 
 export function explainCode({ fileName, code }) {
